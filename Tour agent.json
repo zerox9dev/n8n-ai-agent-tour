@@ -1,0 +1,310 @@
+{
+  "name": "Tour agent",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "removeItemsSeenInPreviousExecutions",
+        "dedupeValue": "={{ $json.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        16,
+        0
+      ],
+      "id": "ff996c4e-dcfd-43c4-b950-9964eefe268b",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.threadId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        304
+      ],
+      "id": "fd2853e5-c776-4cb0-bbbf-caf1e016055f",
+      "name": "Memory"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "message": "={{ $json.output }}",
+        "options": {
+          "appendAttribution": false,
+          "replyToSenderOnly": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        560,
+        0
+      ],
+      "id": "3bf8a889-5831-42fa-bc1f-c263b06734c5",
+      "name": "Reply to a message",
+      "webhookId": "4125ee4a-600f-4044-8be3-11586e301c36",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "sSrAhl1gVIBhbZVt",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/15FS8RZnMktIOkCTqi0lSP4g3E4PxnbRtzENLCBQXJRg/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Лист1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15FS8RZnMktIOkCTqi0lSP4g3E4PxnbRtzENLCBQXJRg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "extracted_fields": "={{ $('Tour agent').item.json.output }}",
+            "thread_id": "={{ $('Gmail Trigger').item.json.threadId }}",
+            "email_from": "={{ $('Gmail Trigger').item.json.from.value[0].address }}",
+            "status": "processed",
+            "timestamp": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "thread_id",
+              "displayName": "thread_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email_from",
+              "displayName": "email_from",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "extracted_fields",
+              "displayName": "extracted_fields",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error",
+              "displayName": "error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        768,
+        0
+      ],
+      "id": "70bcdc0a-77d0-45ef-8077-8b46897518a2",
+      "name": "Add a row in a worksheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9Aok8Vp2TFbZvDZ7",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "includeSpamTrash": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -208,
+        0
+      ],
+      "id": "e9c84517-c449-4373-8867-49bbc08b34d0",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "sSrAhl1gVIBhbZVt",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Новий лист:\nТекст: {{ $json.text }}\n\nПроаналізуй і збери дані про бронювання.",
+        "options": {
+          "systemMessage": "=Ты - агент з бронювання авіаквитків. Твоя мета - зібрати через ДІАЛОГ 4 факти:\n\n1. КОЛИ (точна дата)\n2. КУДИ (конкретне місто) \n3. СТРАХОВКА (так/ні)\n4. СКІЛЬКИ ЛЮДЕЙ (число)\n\nАЛГОРИТМ:\n1. Проаналізуй вхідне повідомлення\n2. Визнач що УЖЕ Є з 4 фактів\n3. Якщо ВСІ 4 факти є - попроси ПІДТВЕРДЖЕННЯ\n4. Якщо НЕ ВСІ - запитай ТІЛЬКИ відсутні\n5. Ігноруй готелі, трансфери, інші послуги\n\nПРАВИЛА ВІДПОВІДІ:\n- Якщо перше повідомлення: привітайся і поясни що потрібно\n- Якщо дані неповні: \"Дякую! Потрібно уточнити: [список відсутніх фактів]\"\n- Якщо дані повні: \"Отже, підсумок: [всі факти]. Все правильно?\"\n- Питай ПО ОДНОМУ недостающему факту за раз\n\nВідповідай HTML"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "08b4fe98-3cd3-467b-bc99-7e64426fcdb1",
+      "name": "Tour agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        208,
+        304
+      ],
+      "id": "a3ec728e-ce9f-4295-b958-fa01b291bab2",
+      "name": "OpenRouter",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IfRRzVZj2Oj6SjG2",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Tour agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Tour agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to a message": {
+      "main": [
+        [
+          {
+            "node": "Add a row in a worksheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tour agent": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Tour agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "fbc06171-d915-4dc3-b03b-6c5a526e09ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3cccf3409e86b33b2a79f99fa866096ec6b0257f65a60fa3424765d498ebb729"
+  },
+  "id": "GMEzGwjEBhE9fdyG",
+  "tags": []
+}
